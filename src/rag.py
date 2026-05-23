@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import time
 from dataclasses import dataclass
+from typing import Callable
 from urllib.parse import urljoin, urlparse
 
 import chromadb
