@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAG Playground</title>
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+      .card { border: 1px solid #ddd; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+      input, textarea, select { width: 100%; padding: 0.5rem; margin: 0.25rem 0 0.75rem; }
+      button { padding: 0.5rem 1rem; }
+      pre { background: #f6f8fa; padding: 0.75rem; overflow-x: auto; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <h1>Personal Website RAG Playground</h1>
+
+    <div class="card">
+      <h2>1) Ingest</h2>
+      <form method="post" action="/ingest">
+        <label>Website URL</label>
+        <input name="url" value="{{ default_url }}" required />
+
+        <label>Max pages</label>
+        <input name="max_pages" value="30" type="number" min="1" />
+
+        <label>Chunking concept</label>
+        <select name="chunker">
+          {% for key, label in chunkers.items() %}
+          <option value="{{ key }}" {% if key == selected_chunker %}selected{% endif %}>{{ key }} — {{ label }}</option>
+          {% endfor %}
+        </select>
+
+        <label>Persist dir</label>
+        <input name="persist_dir" value="./chroma_db" />
+
+        <button type="submit">Ingest</button>
+      </form>
+      {% if status %}<p><strong>{{ status }}</strong></p>{% endif %}
+      {% if metrics %}
+      <p><strong>System usage snapshot</strong></p>
+      <pre>Before: {{ metrics.before }}
+After: {{ metrics.after }}</pre>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>2) Ask</h2>
+      <form method="post" action="/ask">
+        <label>Question</label>
+        <textarea name="question" rows="4" required></textarea>
+
+        <label>Top-k retrieval</label>
+        <input name="k" value="4" type="number" min="1" max="20" />
+
+        <label>Generator concept</label>
+        <select name="generator">
+          {% for key, label in generators.items() %}
+          <option value="{{ key }}" {% if key == selected_generator %}selected{% endif %}>{{ key }} — {{ label }}</option>
+          {% endfor %}
+        </select>
+
+        <label>Model name (for Ollama-backed generators)</label>
+        <input name="model" value="{{ default_model }}" />
+
+        <label>Persist dir</label>
+        <input name="persist_dir" value="./chroma_db" />
+
+        <button type="submit">Ask</button>
+      </form>
+    </div>
+
+    {% if answer %}
+    <div class="card">
+      <h2>Answer</h2>
+      <pre>{{ answer }}</pre>
+    </div>
+    {% endif %}
+
+    {% if retrieved and retrieved|length > 0 %}
+    <div class="card">
+      <h2>Retrieved Context</h2>
+      {% for item in retrieved %}
+      <p><strong>Source:</strong> {{ item.source }}</p>
+      <pre>{{ item.text }}</pre>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </body>
+</html>
