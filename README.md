@@ -1,10 +1,12 @@
-# RAG Playground
+# RAG
 
-A versatile local RAG playground with:
-- multiple chunking concepts (fixed/sentence/paragraph/graph-like)
-- multiple generator concepts (decoder-only, seq2seq-style mode, extractive)
-- ChromaDB retrieval + Ollama generation
-- FastAPI Web UI with ingest timing and CPU/GPU usage snapshots
+Simple personal-website RAG using **ChromaDB** + **Ollama (Llama 3.1 8B)** + optional **FastAPI UI**.
+
+## Scope (your preferences)
+- Public website crawling only (no auth/cookies)
+- Single domain only
+- English answers only
+- Target website: `https://passionfordata.de`
 
 ## Setup
 
@@ -12,33 +14,40 @@ A versatile local RAG playground with:
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+Also run Ollama locally:
+
+```bash
 ollama pull llama3.1:8b
 ollama serve
 ```
 
-## Run Web UI
+## CLI
+
+### 1) Ingest
+```bash
+python -m src.rag ingest --url https://passionfordata.de --max-pages 30
+```
+
+### 2) Retrieval only
+```bash
+python -m src.rag retrieve --question "What topics does the website cover?" --k 4
+```
+
+### 3) Final answer with Ollama
+```bash
+python -m src.rag ask --question "What services are offered?" --k 4 --model llama3.1:8b
+```
+
+## Web UI (FastAPI)
 
 ```bash
 uvicorn src.web:app --reload
 ```
 
-Open: `http://127.0.0.1:8000`
+Open `http://127.0.0.1:8000`.
 
-## Features
-
-### Chunking concepts
-- `fixed`: fixed-length char chunks with overlap
-- `sentence`: sentence-window chunking
-- `paragraph`: paragraph-window chunking
-- `graph`: graph-inspired neighborhood chunks over nearby lines
-
-### Generator concepts
-- `ollama_llama3_8b`: decoder-only local generation
-- `ollama_mistral`: decoder-only alternative
-- `seq2seq_flan_t5`: seq2seq-style prompting mode
-- `extractive_only`: no generation, just retrieved passages
-
-## Notes
-- Single-domain public crawl works well for `https://passionfordata.de`.
-- English-only responses are default to reduce multilingual instability in smaller local models.
-- CPU/GPU metrics are best-effort snapshots (GPU requires NVML-compatible setup).
+## Does multilingual cause problems?
+Not necessarily, but it can reduce retrieval precision with small local models and mixed-language content.
+For your setup, **English-only answers** are a good default.
